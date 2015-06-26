@@ -106,6 +106,10 @@ if(DAGUE_GPU_WITH_OPENCL)
   message(WARNING "Open CL is not supported yet, ignored.")
 endif()
 
+## HSA engine parameters
+option(DAGUE_GPU_WITH_HSA
+  "Enable GPU support with HSA" ON)
+
 ### Debug options
 option(DAGUE_DEBUG_ENABLE
     "Enable extra paranoid checks" OFF)
@@ -462,6 +466,22 @@ IF( BUILD_DAGUE )
       CMAKE_POP_CHECK_STATE()
     endif (CUDA_FOUND)
   endif( DAGUE_GPU_WITH_CUDA )
+
+  if (DAGUE_GPU_WITH_HSA)
+    set(HSA_FOUND 1)
+    if (HSA_FOUND)
+      add_definitions(-DHAVE_HSA=${HSA_FOUND})
+      set(HSARUNTIME_LIBRARIES "-L/opt/hsa/lib -lhsa-runtime64 -lelf -lbsd -lhsakmt")
+      set(HSABLAS_INCLUDE_DIRS ${HSABLAS_DIR})
+      set(HSABLAS_LIBRARIES "-L${HSABLAS_DIR} -lhsaBLAS")
+      message(STATUS "HSA enabled, HAS BLAS found header ${HSABLAS_INCLUDE_DIRS}, libs ${HSABLAS_LIBRARIES} runtime ${HSARUNTIME_LIBRARIES}")
+      include_directories(${HSABLAS_INCLUDE_DIRS})
+      list(APPEND EXTRA_LIBS ${HSABLAS_LIBRARIES})
+      list(APPEND EXTRA_LIBS ${HSARUNTIME_LIBRARIES})
+      set(CMAKE_REQUIRED_INCLUDES  "${CMAKE_REQUIRED_INCLUDES};${HSABLAS_INCLUDE_DIRS}")
+      set(CMAKE_REQUIRED_LIBRARIES "${CMAKE_REQUIRED_LIBRARIES};${HSABLAS_LIBRARIES};${HSARUNTIME_LIBRARIES}")
+    endif (HSA_FOUND)
+  endif (DAGUE_GPU_WITH_HSA)
 
   find_package(AYUDAME QUIET)
   set(HAVE_AYUDAME ${AYUDAME_FOUND})

@@ -23,6 +23,7 @@ endif()
 set(HEADERS
     dplasma_zcores.h
     ${CORE_CUDA_HEADERS}
+    hsa_zgemm.h
 )
 precisions_rules_py(generated_headers
                  ${HEADERS}
@@ -34,6 +35,8 @@ foreach(generated_header ${generated_headers})
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${generated_header} DESTINATION include/cores)
 endforeach()
 
+#set(HSABLAS_INCLUDE_DIR "-I/home/wwu/hsaBLAS")
+#include_directories(${HSABLAS_INCLUDE_DIRS})
 
 ### Generate the dplasma wrappers for all required precisions
 set(SOURCES
@@ -45,6 +48,7 @@ set(SOURCES
   core_zhetrf_nopiv.c
   core_zhebut.c
   core_zamax.c
+  hsa_zgemm.c
 )
 precisions_rules_py(generated_files
                  "${SOURCES}"

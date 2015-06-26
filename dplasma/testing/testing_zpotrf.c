@@ -19,7 +19,7 @@ int main(int argc, char ** argv)
 {
     dague_context_t* dague;
     int iparam[IPARAM_SIZEOF];
-    PLASMA_enum uplo = PlasmaUpper;
+    PLASMA_enum uplo = PlasmaLower;
     int info = 0;
     int ret = 0;
 
@@ -56,6 +56,7 @@ int main(int argc, char ** argv)
                               (uplo, (tiled_matrix_desc_t*)&ddescA, &info));
     PASTE_CODE_PROGRESS_KERNEL(dague, zpotrf);
 
+    //dplasma_zprint(dague, PlasmaLower, (tiled_matrix_desc_t *)&ddescA);
     dplasma_zpotrf_Destruct( DAGUE_zpotrf );
 
     if( 0 == rank && info != 0 ) {
