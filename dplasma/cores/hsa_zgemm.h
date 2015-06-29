@@ -11,6 +11,7 @@
 #define _hsa_zgemm_h_
 
 #include "dague_config.h"
+#include "dague/devices/hsa/dev_hsa.h"
 #include "dague.h"
 #include "dague/execution_unit.h"
 #include "dague/class/fifo.h"
@@ -23,6 +24,7 @@ int hsa_zgemm( dague_execution_unit_t* eu_context,
                int M, int N, int K, 
                dague_complex64_t alpha, int lda,
                                         int ldb,
-               dague_complex64_t beta,  int ldc );
+               dague_complex64_t beta,  int ldc,
+               int m, int n, int k );
 
 #endif /* _hsa_zgemm_h_ */

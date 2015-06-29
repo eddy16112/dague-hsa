@@ -234,13 +234,15 @@ BODY
 //               (dague_complex64_t)-1.0, A /*A(m, k)*/, ldam,
 //                                        B /*A(n, k)*/, ldan,
 //               (dague_complex64_t) 1.0, C /*A(m, n)*/, ldam);
-    
-      hsa_zgemm(context, this_task,
-                PlasmaNoTrans, PlasmaConjTrans,
-                tempmm, descA.mb, descA.mb,
-                (dague_complex64_t)-1.0, ldam,
-                                         ldan,
-                (dague_complex64_t) 1.0, ldam);
+    int ret;
+    ret =  hsa_zgemm(context, this_task,
+                     PlasmaNoTrans, PlasmaConjTrans,
+                     tempmm, descA.mb, descA.mb,
+                     (dague_complex64_t)-1.0, ldam,
+                                              ldan,
+                     (dague_complex64_t) 1.0, ldam,
+                     m, n, k);
+    return ret;
 
 #endif  /* !defined(DAGUE_DRY_RUN) */
 

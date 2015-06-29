@@ -70,6 +70,10 @@ if (CUDA_FOUND)
   list(APPEND SOURCES devices/cuda/dev_cuda.c)
 endif (CUDA_FOUND)
 
+if (HSA_FOUND)
+  list(APPEND SOURCES devices/hsa/dev_hsa.c)
+endif (HSA_FOUND)
+
 if( DAGUE_PROF_GRAPHER )
   list(APPEND SOURCES dague_prof_grapher.c)
 endif( DAGUE_PROF_GRAPHER )

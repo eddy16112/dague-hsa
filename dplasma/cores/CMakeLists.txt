@@ -35,9 +35,6 @@ foreach(generated_header ${generated_headers})
   install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${generated_header} DESTINATION include/cores)
 endforeach()
 
-#set(HSABLAS_INCLUDE_DIR "-I/home/wwu/hsaBLAS")
-#include_directories(${HSABLAS_INCLUDE_DIRS})
-
 ### Generate the dplasma wrappers for all required precisions
 set(SOURCES
   core_ztrdv.c

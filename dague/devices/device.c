@@ -178,6 +178,8 @@ int dague_devices_fini(dague_context_t* dague_context)
 
 #if defined(HAVE_CUDA)
     rvalue = dague_gpu_fini();
+#elif defined (HAVE_HSA)
+    rvalue = dague_hsa_fini();
 #else
     rvalue = 0;
 #endif  /* defined(HAVE_CUDA) */
@@ -239,6 +241,8 @@ int dague_devices_select(dague_context_t* context)
     (void)context;
 #if defined(HAVE_CUDA)
     return dague_gpu_init(context);
+#elif defined (HAVE_HSA)
+    return dague_hsa_init(context);
 #else
     return DAGUE_SUCCESS;
 #endif  /* defined(HAVE_CUDA) */
