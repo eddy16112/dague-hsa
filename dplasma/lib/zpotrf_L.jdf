@@ -20,6 +20,8 @@ extern "C" %{
 #include "dplasma/cores/hsa_zgemm.h"
 #endif /* defined(HAVE_HSA) */
 
+#define HSA
+
 /*
  * Priorities used in this jdf:
  *      - POTRF(k)    : (MT-k)**3
@@ -228,12 +230,8 @@ BODY
     int ldan = BLKLDD( descA, n );
 
 #if !defined(DAGUE_DRY_RUN)
-    
-//    CORE_zgemm(PlasmaNoTrans, PlasmaConjTrans,
-//               tempmm, descA.mb, descA.mb,
-//               (dague_complex64_t)-1.0, A /*A(m, k)*/, ldam,
-//                                        B /*A(n, k)*/, ldan,
-//               (dague_complex64_t) 1.0, C /*A(m, n)*/, ldam);
+
+#if defined (HSA)
     int ret;
     ret =  hsa_zgemm(context, this_task,
                      PlasmaNoTrans, PlasmaConjTrans,
@@ -244,6 +242,13 @@ BODY
                      m, n, k);
     return ret;
 
+#else    
+    CORE_zgemm(PlasmaNoTrans, PlasmaConjTrans,
+               tempmm, descA.mb, descA.mb,
+               (dague_complex64_t)-1.0, A /*A(m, k)*/, ldam,
+                                        B /*A(n, k)*/, ldan,
+               (dague_complex64_t) 1.0, C /*A(m, n)*/, ldam);
+#endif   
 #endif  /* !defined(DAGUE_DRY_RUN) */
 
     printlog("CORE_zgemm( %d, %d, %d )\n\t( %s, %s, %d, %d, %d, %f, A(%d,%d)[%p], %d, A(%d,%d)[%p], %d, %f, A(%d,%d)[%p], %d)\n",

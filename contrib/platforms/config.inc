@@ -63,6 +63,15 @@ if [ -n "{HSABLAS_DIR}" ]; then
     HSABLAS="-DHSABLAS_DIR=${HSABLAS_DIR}"
 fi
 
+if [ -n "{HSARUNTIME_DIR}" ]; then
+    HSARUNTIME="-DHSARUNTIME_DIR=${HSARUNTIME_DIR}"
+fi
+
+if [ -n "{ATMI_DIR}" ]; then
+    ATMI="-DATMI_DIR=${ATMI_DIR}"
+fi
+
+
 if [ -n "${CUDA_DIR}" -a $(expr "${USER_OPTIONS}" : ".*DAGUE_GPU_WITH_CUDA=OFF.*") -eq 0 ]; then
     CUDA="-DCUDA_TOOLKIT_ROOT_DIR=${CUDA_DIR} -DCUDA_HOST_COMPILER=${CC}"
 fi
@@ -86,7 +95,7 @@ fi
 # Done with variable allocation, do the thing with Cmake
 rm -rf CMakeCache.txt CMakeFiles
 SRC_LOCATION=${SRC_LOCATION:=`dirname $0`/../../}
-CMAKE_COMMAND="cmake -G 'Unix Makefiles' ${MPI} ${HWLOC} ${Q2J} ${PLASMA} ${CUDA} ${GTG} ${HSABLAS} ${PROFILE} ${PYTHON} ${DEBUG} ${USER_OPTIONS} ${TESTCMD} $* ${SRC_LOCATION}"
+CMAKE_COMMAND="cmake -G 'Unix Makefiles' ${MPI} ${HWLOC} ${Q2J} ${PLASMA} ${CUDA} ${GTG} ${HSABLAS} ${HSARUNTIME} ${ATMI} ${PROFILE} ${PYTHON} ${DEBUG} ${USER_OPTIONS} ${TESTCMD} $* ${SRC_LOCATION}"
 echo $CMAKE_COMMAND
 eval $CMAKE_COMMAND
 }
