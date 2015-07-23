@@ -24,6 +24,15 @@
 
 #include <atmi_rt.h>
 
+#if defined(DAGUE_PROF_TRACE)
+/* Accepted values are: DAGUE_PROFILE_HSA_TRACK_EXEC
+ */
+int dague_hsa_trackable_events = DAGUE_PROFILE_HSA_TRACK_EXEC | DAGUE_PROFILE_CUDA_TRACK_OWN;
+
+int dague_cuda_own_GPU_key_start;
+int dague_cuda_own_GPU_key_end;
+#endif  /* defined(PROFILING) */
+
 int dague_hsa_output_stream = -1;
 
 static int dague_hsa_device_fini(dague_device_t* device);
@@ -33,6 +42,13 @@ int dague_hsa_init(dague_context_t *dague_context)
 {
     int ndevices;
     int i, j, k;
+
+#if defined(DAGUE_PROF_TRACE)
+    dague_profiling_add_dictionary_keyword( "hsa", "fill:#66ff66",
+                                            0, NULL,
+                                            &dague_hsa_own_GPU_key_start, &dague_hsa_own_GPU_key_end);
+#endif  /* defined(PROFILING) */
+
     ndevices = 1;
     for (i = 0; i < ndevices; i++) {
         hsa_device_t *hsa_device;
@@ -63,6 +79,12 @@ int dague_hsa_init(dague_context_t *dague_context)
             for (k = 0; k < DAGUE_HSA_MAX_TASKS_PER_STREAM; k++) {
                 exec_stream->tasks[k] = NULL;
             }
+#if defined(DAGUE_PROF_TRACE)
+            exec_stream->profiling = dague_profiling_thread_init( 2*1024*1024, DAGUE_PROFILE_STREAM_STR, i, j );
+            exec_stream->prof_event_track_enable = dague_hsa_trackable_events & DAGUE_PROFILE_HSA_TRACK_EXEC;
+            exec_stream->prof_event_key_start    = -1;
+            exec_stream->prof_event_key_end      = -1;
+#endif  /* defined(DAGUE_PROF_TRACE) */
         }
         
 
@@ -199,6 +221,16 @@ check_completion:
 #endif
             exec_stream->tasks[exec_stream->end] = NULL;
             exec_stream->end = (exec_stream->end + 1) % exec_stream->max_events;
+#if defined(DAGUE_PROF_TRACE)
+            if( exec_stream->prof_event_track_enable ) {
+                DAGUE_TASK_PROF_TRACE(exec_stream->profiling,
+                                      (-1 == exec_stream->prof_event_key_end ?
+                                      DAGUE_PROF_FUNC_KEY_END(task->ec->dague_handle,
+                                                                task->ec->function->function_id) :
+                                      exec_stream->prof_event_key_end),
+                                      task->ec);
+            }
+#endif /* (DAGUE_PROF_TRACE) */
             task = NULL;  /* Try to schedule another task */
             goto grab_a_task;
         }

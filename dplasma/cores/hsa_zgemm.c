@@ -43,6 +43,8 @@ typedef struct dague_hsa_zgemm_args_s {
 } dague_hsa_zgemm_args_t;
 
 
+atmi_lparm_t *gpu_zgemm_lp = NULL;
+
 extern atmi_task_t *atmi_zgemm_kernel (atmi_lparm_t *lparm, int m, int n, int k, 
                                        PLASMA_enum transA, PLASMA_enum transB, 
                                        uint M, uint N, uint var9, 
@@ -51,6 +53,31 @@ extern atmi_task_t *atmi_zgemm_kernel (atmi_lparm_t *lparm, int m, int n, int k,
                                        dague_complex64_t beta, dague_complex64_t *C, uint ldc); 
 
 #include <dague/devices/hsa/hsa_scheduling.h>
+
+static inline int init_zgemm_lparm(int gridx, int gridy)
+{
+    if (gpu_zgemm_lp == NULL ) {
+        gpu_zgemm_lp = (atmi_lparm_t *)malloc(sizeof(atmi_lparm_t));
+        gpu_zgemm_lp->gridDim[0] = gridx;
+        gpu_zgemm_lp->gridDim[1] = gridy;
+        gpu_zgemm_lp->groupDim[0] = 8;
+        gpu_zgemm_lp->groupDim[1] = 8;
+        gpu_zgemm_lp->kernel_id = 1;
+        gpu_zgemm_lp->waitable = ATMI_FALSE;
+        gpu_zgemm_lp->acquire_scope = 2;
+        gpu_zgemm_lp->release_scope = 2;
+        gpu_zgemm_lp->num_required = 0;
+        gpu_zgemm_lp->requires = NULL;
+        gpu_zgemm_lp->num_needs_any = 0;
+        gpu_zgemm_lp->needs_any = 0;
+        gpu_zgemm_lp->profilable = ATMI_FALSE;
+        gpu_zgemm_lp->atmi_id = ATMI_VRM;
+        gpu_zgemm_lp->synchronous = ATMI_FALSE;
+        gpu_zgemm_lp->stream = NULL;
+
+    }
+    return 0;
+}
 
 static inline int
 hsa_kernel_submit_zgemm( hsa_device_t        *hsa_device,
@@ -61,19 +88,22 @@ hsa_kernel_submit_zgemm( hsa_device_t        *hsa_device,
     dague_hsa_zgemm_args_t *args = (dague_hsa_zgemm_args_t*)hsa_task;
     
     dague_data_copy_t *gC = this_task->data[flow_C].data_in;
-    float *C = DAGUE_DATA_COPY_GET_PTR(gC);
+    void *C = DAGUE_DATA_COPY_GET_PTR(gC);
     dague_data_copy_t *gA = this_task->data[flow_A].data_in;
-    float *A = DAGUE_DATA_COPY_GET_PTR(gA); 
+    void *A = DAGUE_DATA_COPY_GET_PTR(gA); 
     dague_data_copy_t *gB = this_task->data[flow_B].data_in;
-    float *B = DAGUE_DATA_COPY_GET_PTR(gB);
+    void *B = DAGUE_DATA_COPY_GET_PTR(gB);
  
+   /* 
     ATMI_LPARM_2D(gpu_zgemm_lp, args->N/8, args->N/8);
     gpu_zgemm_lp->groupDim[0] = 8;
     gpu_zgemm_lp->groupDim[1] = 8;
     gpu_zgemm_lp->kernel_id = 1;
-    //gpu_zgemm_lp->synchronous = ATMI_TRUE;
+    gpu_zgemm_lp->synchronous = ATMI_TRUE;
     gpu_zgemm_lp->stream = hsa_stream->atmi_stream;
-
+*/
+    init_zgemm_lparm(args->N/8, args->N/8);
+    gpu_zgemm_lp->stream = hsa_stream->atmi_stream;
 
 /*
     SNK_INIT_LPARM(lparm,1);
@@ -95,7 +125,7 @@ hsa_kernel_submit_zgemm( hsa_device_t        *hsa_device,
                                             -1.0, A, args->lda,
                                             B, args->ldb,
                                             1.0, C, args->ldc);    
-    assert(hsa_task->atmi_task->state == ATMI_DISPATCHED);
+    //assert(hsa_task->atmi_task->state == ATMI_DISPATCHED);
     //printf("hsa_zgemm( %d, %d, %d ), task %p, atmi_task %p\n", args->m, args->n, args->k, hsa_task, hsa_task->atmi_task);
 
     /*int sv = snk_task_query(hsa_task->atmi_task);

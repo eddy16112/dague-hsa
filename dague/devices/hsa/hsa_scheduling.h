@@ -30,6 +30,9 @@
 #define hsa_kernel_scheduler GENERATE_NAME( hsa_kernel_scheduler, KERNEL_NAME )
 #define hsa_kernel_submit    GENERATE_NAME( hsa_kernel_submit   , KERNEL_NAME )
 
+
+//int exec_stream = 0;
+
 static inline dague_hook_return_t
 hsa_kernel_scheduler( dague_execution_unit_t *eu_context,
                       dague_hsa_context_t    *this_task,
@@ -42,12 +45,27 @@ hsa_kernel_scheduler( dague_execution_unit_t *eu_context,
 
     hsa_device = (hsa_device_t*)dague_devices_get(which_gpu);
 
+#if defined(DAGUE_PROF_TRACE)
+    DAGUE_PROFILING_TRACE_FLAGS( eu_context->eu_profile,
+                                 DAGUE_PROF_FUNC_KEY_END(this_task->ec->dague_handle,
+                                                         this_task->ec->function->function_id),
+                                 this_task->ec->function->key( this_task->ec->dague_handle, this_task->ec->locals),
+                                 this_task->ec->dague_handle->handle_id, NULL,
+                                 DAGUE_PROFILING_EVENT_RESCHEDULED );
+#endif /* defined(DAGUE_PROF_TRACE) */
+
     /* Check the GPU status */
     rc = dague_atomic_inc_32b( &(hsa_device->mutex) );
     if( 1 != rc ) {  /* I'm not the only one messing with this GPU */
         dague_fifo_push( &(hsa_device->pending), (dague_list_item_t*)this_task );
         return DAGUE_HOOK_RETURN_ASYNC;
     }
+
+#if defined(DAGUE_PROF_TRACE)
+    if( dague_hsa_trackable_events & DAGUE_PROFILE_HSA_TRACK_OWN )
+        DAGUE_PROFILING_TRACE( eu_context->eu_profile, dague_hsa_own_GPU_key_start,
+                               (unsigned long)eu_context, PROFILE_OBJECT_ID_NULL, NULL );
+#endif  /* defined(DAGUE_PROF_TRACE) */
 
 check_in_deps:
 //    printf("run task %p\n", this_task);
@@ -87,6 +105,11 @@ complete_task:
 
     rc = dague_atomic_dec_32b( &(hsa_device->mutex) );
     if( 0 == rc ) {  /* I was the last one */
+#if defined(DAGUE_PROF_TRACE)
+        if( dague_hsa_trackable_events & DAGUE_PROFILE_HSA_TRACK_OWN )
+            DAGUE_PROFILING_TRACE( eu_context->eu_profile, dague_hsa_own_GPU_key_end,
+                                   (unsigned long)eu_context, PROFILE_OBJECT_ID_NULL, NULL );
+#endif  /* defined(DAGUE_PROF_TRACE) */
         return DAGUE_HOOK_RETURN_ASYNC;
     }
     this_task = progress_task;

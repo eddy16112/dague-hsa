@@ -22,7 +22,16 @@
 BEGIN_C_DECLS
 
 #define DAGUE_HSA_MAX_STREAMS            4
-#define DAGUE_HSA_MAX_TASKS_PER_STREAM   100
+#define DAGUE_HSA_MAX_TASKS_PER_STREAM   10000
+
+#if defined(DAGUE_PROF_TRACE)
+#define DAGUE_PROFILE_HSA_TRACK_OWN      0x0004
+#define DAGUE_PROFILE_HSA_TRACK_EXEC     0x0008
+
+extern int dague_hsa_trackable_events;
+extern int dague_hsa_own_GPU_key_start;
+extern int dague_hsa_own_GPU_key_end;
+#endif  /* defined(PROFILING) */
 
 typedef struct __dague_hsa_context {
     dague_list_item_t          list_item;
