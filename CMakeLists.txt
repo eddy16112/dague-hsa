@@ -110,7 +110,7 @@ endif()
 
 ## HSA engine parameters
 option(DAGUE_GPU_WITH_HSA
-  "Enable GPU support with HSA" ON)
+  "Enable GPU support with HSA" OFF)
 
 ### Debug options
 option(DAGUE_DEBUG_ENABLE

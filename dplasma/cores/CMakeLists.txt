@@ -45,8 +45,14 @@ set(SOURCES
   core_zhetrf_nopiv.c
   core_zhebut.c
   core_zamax.c
-  hsa_zgemm.c
 )
+
+if ( HSA_FOUND )
+  set (SOURCES
+       ${SOURCES}
+       hsa_zgemm.c
+       )
+endif()
 precisions_rules_py(generated_files
                  "${SOURCES}"
                  PRECISIONS "${DPLASMA_PRECISIONS}")
