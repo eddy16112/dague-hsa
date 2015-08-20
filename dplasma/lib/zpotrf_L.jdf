@@ -20,7 +20,7 @@ extern "C" %{
 #include "dplasma/cores/hsa_zgemm.h"
 #endif /* defined(HAVE_HSA) */
 
-#define HSA
+//#define HSA
 
 /*
  * Priorities used in this jdf:
